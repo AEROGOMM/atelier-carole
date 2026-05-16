@@ -851,56 +851,25 @@ document.querySelectorAll('.g-item').forEach(item => {
 });
 
 // ── GALLERY SYSTEM ──
-const STORAGE_KEY   = 'carole_gallery_v1';
-const CLOUD_NAME    = 'db1tbhrcu';
-const UPLOAD_PRESET = 'ixfmhfh8';
-const UPLOAD_URL    = 'https://api.cloudinary.com/v1_1/' + CLOUD_NAME + '/image/upload';
-const ADMIN_PWD     = 'Carole49';
+const CLOUD_NAME     = 'db1tbhrcu';
+const UPLOAD_PRESET  = 'ixfmhfh8';
+const ADMIN_PWD      = 'Carole49';
+const UPLOAD_URL     = 'https://api.cloudinary.com/v1_1/' + CLOUD_NAME + '/image/upload';
+const STORAGE_KEY    = 'carole_gallery_v1';
 
-async function testCloudinaryConnection(){
-  const btn  = document.getElementById('testBtn');
-  const diag = document.getElementById('diagMsg');
-  btn.disabled = true;
-  btn.textContent = 'Test en cours…';
-  diag.style.display = 'none';
-
-  // Upload un pixel PNG 1×1 en base64
-  const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
-  const fd = new FormData();
-  fd.append('file', pixel);
-  fd.append('upload_preset', UPLOAD_PRESET);
-
-  try {
-    const res  = await fetch(UPLOAD_URL, {method:'POST', body:fd});
-    const data = await res.json();
-    if(res.ok){
-      diag.style.color = '#2d7a2d';
-      diag.textContent = '✓ Connexion Cloudinary OK — cloud : ' + data.asset_id?.substring(0,8) + '…';
-    } else {
-      diag.style.color = '#c0392b';
-      diag.textContent = '✗ Erreur Cloudinary : ' + (data.error?.message || JSON.stringify(data));
-    }
-  } catch(e){
-    diag.style.color = '#c0392b';
-    diag.textContent = '✗ Erreur réseau : ' + e.message;
-  }
-  diag.style.display = 'block';
-  btn.disabled = false;
-  btn.textContent = 'Tester la connexion';
-}
-
+// ── localStorage ──
 function getPhotos(){ return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]') }
-function savePhotos(p){ localStorage.setItem(STORAGE_KEY, JSON.stringify(p)) }
-function addPhoto(p){ const a=getPhotos(); a.unshift(p); savePhotos(a) }
-function deletePhoto(id){ savePhotos(getPhotos().filter(p=>p.id!==id)) }
-function updatePhotoTitle(id, title){ savePhotos(getPhotos().map(p=>p.id===id?{...p,title}:p)) }
+function savePhotos(list){ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)) }
+function addPhoto(p){ savePhotos([p, ...getPhotos()]) }
+function removePhoto(id){ savePhotos(getPhotos().filter(p => p.id !== id)) }
+function updateTitle(id, title){ savePhotos(getPhotos().map(p => p.id===id ? {...p, title} : p)) }
 
-// Public gallery
+// ── Galerie publique ──
 function renderGallery(){
+  const grid  = document.getElementById('real-grid');
+  const empty = document.getElementById('real-empty');
+  grid.querySelectorAll('.real-item').forEach(el => el.remove());
   const photos = getPhotos();
-  const grid   = document.getElementById('real-grid');
-  const empty  = document.getElementById('real-empty');
-  grid.querySelectorAll('.real-item').forEach(el=>el.remove());
   if(!photos.length){ empty.style.display='flex'; return }
   empty.style.display = 'none';
   photos.forEach(photo => {
@@ -911,12 +880,12 @@ function renderGallery(){
         <span class="real-title">${photo.title||''}</span>
         <span class="real-zoom">Voir en grand</span>
       </div>`;
-    item.addEventListener('click', ()=>openLightbox(photo));
+    item.addEventListener('click', () => openLightbox(photo));
     grid.insertBefore(item, empty);
   });
 }
 
-// Lightbox
+// ── Lightbox ──
 function openLightbox(photo){
   document.getElementById('lb-img').src = photo.secureUrl;
   document.getElementById('lb-title').textContent = photo.title||'';
@@ -931,7 +900,7 @@ document.getElementById('lightbox').addEventListener('click', function(e){
   if(e.target===this || e.target===document.getElementById('lb-img')) closeLightbox();
 });
 
-// Admin login
+// ── Admin — connexion ──
 function openAdminLogin(){
   document.getElementById('adminLoginModal').classList.add('open');
   setTimeout(()=>document.getElementById('adminPwdInput').focus(), 200);
@@ -954,7 +923,7 @@ function checkPassword(){
 document.getElementById('adminLoginModal').addEventListener('click', function(e){ if(e.target===this) closeAdminLogin() });
 document.getElementById('adminPwdInput').addEventListener('keydown', e=>{ if(e.key==='Enter') checkPassword() });
 
-// Admin panel
+// ── Admin — panneau ──
 function openAdminPanel(){
   renderAdminGrid();
   document.getElementById('adminPanel').classList.add('open');
@@ -974,39 +943,61 @@ function renderAdminGrid(){
     grid.innerHTML = '<p class="admin-empty-msg">Aucune photo pour le moment.<br>Importez vos premières photos ci-dessus !</p>';
     return;
   }
-  grid.innerHTML = photos.map(p=>`
-    <div class="admin-photo-card">
+  grid.innerHTML = photos.map(p => `
+    <div class="admin-photo-card" data-id="${p.id}">
       <div class="admin-photo-img">
-        <img src="${p.secureUrl}" alt="${p.title||''}">
-        <button class="admin-delete-btn" onclick="deletePhotoUI('${p.id}')" title="Supprimer">✕</button>
+        <img src="${p.secureUrl}" alt="">
+        <button class="admin-delete-btn" onclick="deletePhotoUI(this)" title="Supprimer">✕</button>
       </div>
       <input class="admin-title-input" type="text" value="${p.title||''}" placeholder="Titre de la photo…"
-        onchange="updatePhotoTitle('${p.id}',this.value)">
+        onchange="updateTitle('${p.id}',this.value); renderGallery()">
     </div>`).join('');
 }
 
-function deletePhotoUI(id){
-  if(confirm('Supprimer cette photo de la galerie ?')){ deletePhoto(id); renderAdminGrid() }
+function deletePhotoUI(btn){
+  const card = btn.closest('.admin-photo-card');
+  const id   = card.dataset.id;
+  if(!confirm('Supprimer cette photo de la galerie ?')) return;
+  removePhoto(id);
+  card.remove();
+  document.getElementById('photoCount').textContent = getPhotos().length;
+  renderGallery();
 }
 
-// Upload to Cloudinary
+async function testCloudinaryConnection(){
+  const btn  = document.getElementById('testBtn');
+  const diag = document.getElementById('diagMsg');
+  btn.disabled = true; btn.textContent = 'Test en cours…'; diag.style.display = 'none';
+  const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+  const fd = new FormData();
+  fd.append('file', pixel); fd.append('upload_preset', UPLOAD_PRESET);
+  try {
+    const res = await fetch(UPLOAD_URL, {method:'POST', body:fd});
+    const data = await res.json();
+    if(res.ok){ diag.style.color='#2d7a2d'; diag.textContent='✓ Connexion Cloudinary OK' }
+    else { diag.style.color='#c0392b'; diag.textContent='✗ Erreur : '+(data.error?.message||JSON.stringify(data)) }
+  } catch(e){ diag.style.color='#c0392b'; diag.textContent='✗ Erreur réseau : '+e.message }
+  diag.style.display='block'; btn.disabled=false; btn.textContent='Tester la connexion';
+}
+
+// ── Upload ──
 async function uploadFile(file, onProgress){
-  return new Promise((resolve, reject)=>{
+  return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const fd  = new FormData();
     fd.append('file', file);
     fd.append('upload_preset', UPLOAD_PRESET);
     xhr.open('POST', UPLOAD_URL);
-    xhr.upload.onprogress = e=>{ if(e.lengthComputable) onProgress(Math.round(e.loaded/e.total*100)) };
-    xhr.onload  = ()=> {
+    xhr.upload.onprogress = e => { if(e.lengthComputable) onProgress(Math.round(e.loaded/e.total*100)) };
+    xhr.onload = () => {
       if(xhr.status===200){ resolve(JSON.parse(xhr.responseText)) }
       else {
         let msg = 'Échec (' + xhr.status + ')';
-        try { const r = JSON.parse(xhr.responseText); msg = r.error?.message || msg } catch(e){}
+        try { const r=JSON.parse(xhr.responseText); msg=r.error?.message||msg } catch(e){}
         reject(new Error(msg));
       }
     };
-    xhr.onerror = ()=> reject(new Error('Erreur réseau — vérifiez votre connexion'));
+    xhr.onerror = () => reject(new Error('Erreur réseau'));
     xhr.send(fd);
   });
 }
@@ -1022,33 +1013,40 @@ async function processUpload(file){
     <div class="upload-bar-wrap"><div class="upload-bar"></div></div>`;
   queue.prepend(item);
   try {
-    const res = await uploadFile(file, pct=>{ item.querySelector('.upload-bar').style.width=pct+'%' });
-    addPhoto({ id:'p_'+Date.now()+'_'+Math.random().toString(36).substr(2,5),
-      publicId:res.public_id, secureUrl:res.secure_url, title:'', uploadedAt:new Date().toISOString() });
+    const res = await uploadFile(file, pct => { item.querySelector('.upload-bar').style.width = pct+'%' });
+    const photo = {
+      id: 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2,5),
+      publicId: res.public_id,
+      secureUrl: res.secure_url,
+      title: '',
+      uploadedAt: new Date().toISOString()
+    };
+    addPhoto(photo);
     item.querySelector('.upload-status').textContent = '✓ Importée';
     item.querySelector('.upload-status').style.color  = '#C8890A';
     item.querySelector('.upload-bar').style.background = '#C8890A';
-    document.getElementById('photoCount').textContent = getPhotos().length;
-    setTimeout(()=>{ item.remove(); renderAdminGrid() }, 2500);
-  } catch(err) {
+    renderAdminGrid();
+    renderGallery();
+    setTimeout(() => item.remove(), 3000);
+  } catch(err){
     item.querySelector('.upload-status').textContent = '✗ ' + err.message;
-    item.querySelector('.upload-status').style.color  = '#c0392b';
-    console.error('Cloudinary upload error:', err.message);
+    item.querySelector('.upload-status').style.color = '#c0392b';
+    console.error('Upload error:', err.message);
   }
 }
 
-function handleFiles(files){ Array.from(files).forEach(f=>processUpload(f)) }
+function handleFiles(files){ Array.from(files).forEach(f => processUpload(f)) }
 
 // Drag & drop
 const dz = document.getElementById('dropZone');
-dz.addEventListener('dragover',  e=>{ e.preventDefault(); dz.classList.add('drag-over') });
-dz.addEventListener('dragleave', ()=> dz.classList.remove('drag-over'));
-dz.addEventListener('drop', e=>{ e.preventDefault(); dz.classList.remove('drag-over'); handleFiles(e.dataTransfer.files) });
-dz.addEventListener('click', ()=> document.getElementById('fileInput').click());
-document.getElementById('fileInput').addEventListener('change', e=>handleFiles(e.target.files));
+dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag-over') });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag-over'); handleFiles(e.dataTransfer.files) });
+dz.addEventListener('click', () => document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', e => handleFiles(e.target.files));
 
-// Escape closes modals
-document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeLightbox(); closeAdminPanel() } });
+// Escape ferme les modales
+document.addEventListener('keydown', e => { if(e.key==='Escape'){ closeLightbox(); closeAdminPanel() } });
 
 // Init
 renderGallery();
