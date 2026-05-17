@@ -57,6 +57,14 @@ nav.scrolled .nav-links a{color:var(--brun)}
 .hero-cta:hover::before{transform:translateX(100%)}
 .hero-cta span,.hero-cta svg{position:relative;z-index:1}
 .scroll-hint{position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;opacity:0;animation:fadeUp .9s 1.6s forwards}
+.hero-city{position:absolute;bottom:2.8rem;right:3.5rem;z-index:1;opacity:0;animation:fadeUp .9s 1.3s forwards;text-decoration:none}
+.hero-city-frame{width:clamp(160px,18vw,260px);aspect-ratio:3/2;overflow:hidden;border:1px solid rgba(200,137,10,.5);box-shadow:0 0 0 5px rgba(200,137,10,.07),0 18px 55px rgba(0,0,0,.55);position:relative;transition:transform .4s,box-shadow .4s}
+.hero-city:hover .hero-city-frame{transform:translateY(-4px);box-shadow:0 0 0 5px rgba(200,137,10,.12),0 28px 70px rgba(0,0,0,.6)}
+.hero-city-frame::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(30,10,2,.5) 0%,transparent 55%);pointer-events:none}
+.hero-city-frame img{width:100%;height:100%;object-fit:cover;display:block;filter:sepia(.12) contrast(1.04);transition:transform .6s}
+.hero-city:hover .hero-city-frame img{transform:scale(1.06)}
+.hero-city-cap{font-family:'Raleway',sans-serif;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(232,160,32,.65);margin-top:.55rem;text-align:right}
+@media(max-width:768px){.hero-city{display:none}}
 .scroll-line{width:1px;height:55px;background:linear-gradient(to bottom,var(--or),transparent);animation:pulse 2s ease-in-out infinite}
 .scroll-txt{font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(253,246,236,.55)}
 
@@ -195,6 +203,14 @@ section:not(#hero)::before{content:'';position:absolute;top:0;left:0;right:0;hei
 .form-ok{display:none;padding:2.5rem;border:2px solid rgba(200,137,10,.25);text-align:center;background:#fff;box-shadow:0 4px 20px rgba(200,137,10,.1)}
 .form-ok-title{font-family:'Dancing Script',cursive;font-size:1.8rem;color:var(--or);margin-bottom:.5rem}
 .form-ok-txt{color:var(--sec);font-size:.9rem;font-weight:300}
+.fupload-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;padding:1.3rem 1rem;border:1.5px dashed rgba(200,137,10,.38);border-radius:6px;cursor:pointer;transition:border-color .3s,background .3s;text-align:center;background:rgba(200,137,10,.02)}
+.fupload-zone:hover{border-color:var(--or);background:rgba(200,137,10,.05)}
+.fupload-zone svg{opacity:.55;flex-shrink:0}
+.fupload-zone-txt{font-family:'Raleway',sans-serif;font-size:.73rem;color:var(--sec);letter-spacing:.06em}
+.fupload-zone-hint{font-size:.63rem;color:rgba(122,85,53,.5);margin-top:.1rem}
+.fupload-input{display:none}
+.fupload-names{font-size:.7rem;color:var(--or);margin-top:.45rem;min-height:.9rem;font-family:'Raleway',sans-serif;letter-spacing:.05em}
+.form-error{display:none;color:#c0392b;font-size:.78rem;font-family:'Raleway',sans-serif;margin-top:.8rem;text-align:center}
 
 /* ── FOOTER ── */
 footer{background:var(--brun);padding:3rem 2rem;text-align:center;border-top:3px solid var(--or)}
@@ -202,6 +218,13 @@ footer{background:var(--brun);padding:3rem 2rem;text-align:center;border-top:3px
 .f-sub{font-size:.75rem;color:rgba(253,246,236,.45);letter-spacing:.15em;font-weight:300;margin-bottom:1.4rem}
 .f-sep{width:36px;height:1px;background:var(--or);opacity:.4;margin:0 auto 1.4rem}
 .f-copy{font-size:.72rem;color:rgba(253,246,236,.22);font-weight:300}
+
+/* ── BOUTON CONTACT FLOTTANT ── */
+#contact-float{position:fixed;bottom:6.2rem;right:2rem;z-index:997;display:flex;align-items:center;gap:.55rem;padding:.72rem 1.35rem;background:rgba(42,18,6,.9);border:1px solid rgba(200,137,10,.5);color:var(--or-pale);font-family:'Raleway',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;border-radius:50px;backdrop-filter:blur(8px);box-shadow:0 6px 28px rgba(0,0,0,.35);opacity:0;transform:translateY(10px);transition:all .35s;pointer-events:none}
+#contact-float.show{opacity:1;transform:translateY(0);pointer-events:auto}
+#contact-float:hover{background:var(--or);border-color:var(--or);color:#fff;transform:translateY(-3px);box-shadow:0 12px 38px rgba(200,137,10,.55)}
+#contact-float svg{flex-shrink:0}
+@media(max-width:640px){#contact-float{padding:.6rem 1rem;font-size:.55rem;bottom:5.2rem;right:1.4rem;letter-spacing:.12em}}
 
 /* ── BACK TO TOP ── */
 #back-top{position:fixed;bottom:2rem;right:2rem;width:46px;height:46px;background:var(--or);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(14px);transition:all .35s;z-index:998;box-shadow:0 6px 28px rgba(200,137,10,.5);color:#fff;font-size:1.2rem;line-height:1}
@@ -238,6 +261,21 @@ footer{background:var(--brun);padding:3rem 2rem;text-align:center;border-top:3px
 .real-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:#fff;font-weight:400;display:block}
 .real-zoom{color:var(--or-pale);font-size:.72rem;margin-top:.4rem;display:block;letter-spacing:.12em;text-transform:uppercase}
 .real-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5rem 2rem;border:2px dashed rgba(200,137,10,.22);color:var(--sec);font-style:italic;font-family:'Cormorant Garamond',serif;font-size:1.1rem;grid-column:1/-1;text-align:center;gap:.5rem}
+
+/* ── SLIDER AVANT/APRÈS ── */
+.compare-intro{text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--sec);font-size:1.05rem;margin-bottom:2rem;opacity:.85}
+.compare-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6rem;margin-bottom:3.5rem}
+.compare-slider{position:relative;aspect-ratio:4/3;overflow:hidden;cursor:col-resize;box-shadow:0 4px 22px rgba(59,31,14,.13);user-select:none;-webkit-user-select:none;touch-action:pan-y}
+.cmp-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.cmp-before{will-change:clip-path}
+.cmp-line{position:absolute;top:0;bottom:0;left:50%;width:3px;background:var(--or);transform:translateX(-50%);pointer-events:none;filter:drop-shadow(0 0 5px rgba(200,137,10,.6))}
+.cmp-handle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:48px;height:48px;border-radius:50%;background:var(--or);display:flex;align-items:center;justify-content:center;animation:cmp-pulse 2.4s ease-in-out infinite}
+.compare-slider.dragging .cmp-handle{animation:none}
+@keyframes cmp-pulse{0%,100%{box-shadow:0 0 0 5px rgba(200,137,10,.2),0 6px 28px rgba(200,137,10,.45)}50%{box-shadow:0 0 0 12px rgba(200,137,10,.06),0 6px 20px rgba(200,137,10,.3)}}
+.cmp-lbl{position:absolute;top:12px;font-size:.63rem;letter-spacing:.18em;font-weight:700;font-family:'Raleway',sans-serif;color:#fff;padding:4px 10px;background:rgba(59,31,14,.58);backdrop-filter:blur(4px);border-radius:3px;pointer-events:none}
+.cmp-lbl-l{left:12px}
+.cmp-lbl-r{right:12px}
+@media(max-width:900px){.compare-grid{grid-template-columns:1fr;max-width:560px;margin-left:auto;margin-right:auto}}
 
 /* ── LIGHTBOX ── */
 .lightbox{position:fixed;inset:0;background:rgba(14,7,2,.95);z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .35s;padding:2rem}
@@ -362,6 +400,14 @@ footer{background:var(--brun);padding:3rem 2rem;text-align:center;border-top:3px
       <svg width="14" height="10" viewBox="0 0 14 10" fill="none"><path d="M1 5H13M9 1L13 5L9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
   </div>
+  <div class="hero-city">
+    <div class="hero-city-frame">
+      <img src="angers-1.jpg" alt="Angers, ville de L'Atelier de Carole">
+    </div>
+    <p class="hero-city-cap">Angers · Maine-et-Loire</p>
+    <p class="hero-city-cap">Atelier à Feneu</p>
+  </div>
+
   <div class="scroll-hint">
     <span class="scroll-txt">Découvrir</span>
     <div class="scroll-line"></div>
@@ -477,67 +523,46 @@ footer{background:var(--brun);padding:3rem 2rem;text-align:center;border-top:3px
     <p class="s-label reveal">Transformations</p>
     <h2 class="s-title reveal">Avant &amp; Après</h2>
     <div class="gold-sep reveal"></div>
-    <div class="gallery stagger">
+    <p class="compare-intro reveal">Glissez le curseur pour découvrir la transformation</p>
+    <div class="compare-grid">
 
-      <div class="g-item">
-        <div class="compare">
-          <div class="g-before wb1">
-            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1">
-              <div style="font-family:'Dancing Script',cursive;font-size:1.15rem;color:rgba(196,184,154,.55)">Commode Louis XV</div>
-              <div style="font-size:.62rem;letter-spacing:.12em;color:rgba(196,184,154,.35);text-transform:uppercase;margin-top:.3rem">bois noirci · peinture ancienne</div>
-            </div>
-          </div>
-          <div class="g-after wa1">
-            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1">
-              <div style="font-family:'Dancing Script',cursive;font-size:1.15rem;color:rgba(59,31,14,.75)">Commode Louis XV</div>
-              <div style="font-size:.62rem;letter-spacing:.12em;color:rgba(59,31,14,.55);text-transform:uppercase;margin-top:.3rem">chêne révélé · prêt à finir</div>
-            </div>
-          </div>
-          <div class="g-lbl"><span class="lbl-b">Avant</span><span class="lbl-a">Après ✦</span></div>
-        </div>
-        <p class="g-caption">Commode Louis XV — Chêne massif</p>
+      <div class="compare-slider">
+        <img class="cmp-img cmp-after"  src="transformation-apres-1.jpg"  alt="Après restauration">
+        <img class="cmp-img cmp-before" src="transformation-avant-1.jpg" alt="Avant restauration">
+        <div class="cmp-line"><div class="cmp-handle">
+          <svg width="22" height="14" viewBox="0 0 22 14" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="8,1 2,7 8,13"/><polyline points="14,1 20,7 14,13"/>
+          </svg>
+        </div></div>
+        <span class="cmp-lbl cmp-lbl-l">AVANT</span>
+        <span class="cmp-lbl cmp-lbl-r">APRÈS</span>
       </div>
 
-      <div class="g-item">
-        <div class="compare">
-          <div class="g-before wb2">
-            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1">
-              <div style="font-family:'Dancing Script',cursive;font-size:1.15rem;color:rgba(196,184,154,.55)">Buffet Normand</div>
-              <div style="font-size:.62rem;letter-spacing:.12em;color:rgba(196,184,154,.35);text-transform:uppercase;margin-top:.3rem">vernis épais · bois masqué</div>
-            </div>
-          </div>
-          <div class="g-after wa2">
-            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1">
-              <div style="font-family:'Dancing Script',cursive;font-size:1.15rem;color:rgba(59,31,14,.75)">Buffet Normand</div>
-              <div style="font-size:.62rem;letter-spacing:.12em;color:rgba(59,31,14,.55);text-transform:uppercase;margin-top:.3rem">noyer révélé · grain intact</div>
-            </div>
-          </div>
-          <div class="g-lbl"><span class="lbl-b">Avant</span><span class="lbl-a">Après ✦</span></div>
-        </div>
-        <p class="g-caption">Buffet Normand — Noyer ancien</p>
+      <div class="compare-slider">
+        <img class="cmp-img cmp-after"  src="transformation-apres-2.jpg"  alt="Après restauration">
+        <img class="cmp-img cmp-before" src="transformation-avant-2.jpg" alt="Avant restauration">
+        <div class="cmp-line"><div class="cmp-handle">
+          <svg width="22" height="14" viewBox="0 0 22 14" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="8,1 2,7 8,13"/><polyline points="14,1 20,7 14,13"/>
+          </svg>
+        </div></div>
+        <span class="cmp-lbl cmp-lbl-l">AVANT</span>
+        <span class="cmp-lbl cmp-lbl-r">APRÈS</span>
       </div>
 
-      <div class="g-item">
-        <div class="compare">
-          <div class="g-before wb3">
-            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1">
-              <div style="font-family:'Dancing Script',cursive;font-size:1.15rem;color:rgba(196,184,154,.55)">Secrétaire Empire</div>
-              <div style="font-size:.62rem;letter-spacing:.12em;color:rgba(196,184,154,.35);text-transform:uppercase;margin-top:.3rem">peinture écaillée · bois abîmé</div>
-            </div>
-          </div>
-          <div class="g-after wa3">
-            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1">
-              <div style="font-family:'Dancing Script',cursive;font-size:1.15rem;color:rgba(59,31,14,.75)">Secrétaire Empire</div>
-              <div style="font-size:.62rem;letter-spacing:.12em;color:rgba(59,31,14,.55);text-transform:uppercase;margin-top:.3rem">merisier ravivé · prêt à peindre</div>
-            </div>
-          </div>
-          <div class="g-lbl"><span class="lbl-b">Avant</span><span class="lbl-a">Après ✦</span></div>
-        </div>
-        <p class="g-caption">Secrétaire Empire — Merisier</p>
+      <div class="compare-slider">
+        <img class="cmp-img cmp-after"  src="transformation-apres-3.jpg"  alt="Après restauration">
+        <img class="cmp-img cmp-before" src="transformation-avant-3.jpg" alt="Avant restauration">
+        <div class="cmp-line"><div class="cmp-handle">
+          <svg width="22" height="14" viewBox="0 0 22 14" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="8,1 2,7 8,13"/><polyline points="14,1 20,7 14,13"/>
+          </svg>
+        </div></div>
+        <span class="cmp-lbl cmp-lbl-l">AVANT</span>
+        <span class="cmp-lbl cmp-lbl-r">APRÈS</span>
       </div>
 
     </div>
-    <p class="gallery-hint reveal">Survolez une image pour voir la transformation · Touchez sur mobile</p>
   </div>
 </section>
 
@@ -547,6 +572,7 @@ footer{background:var(--brun);padding:3rem 2rem;text-align:center;border-top:3px
     <p class="s-label reveal">Portfolio</p>
     <h2 class="s-title reveal">Nos Réalisations</h2>
     <div class="gold-sep reveal"></div>
+
     <div id="real-grid" class="real-grid">
       <div class="real-empty" id="real-empty">
         <span style="font-size:2.5rem">📷</span>
@@ -715,7 +741,22 @@ footer{background:var(--brun);padding:3rem 2rem;text-align:center;border-top:3px
             <label for="fm">Décrivez votre meuble</label>
             <textarea id="fm" name="message" placeholder="Type de meuble, état actuel, finition souhaitée…" required></textarea>
           </div>
-          <button type="submit" class="btn-send"><span>Envoyer le message</span></button>
+          <div class="fgroup">
+            <label>Photos de votre meuble <span style="opacity:.55;font-weight:400;font-size:.82em">(optionnel · 1 ou 2 photos)</span></label>
+            <label class="fupload-zone" for="fPhotos">
+              <svg width="26" height="22" viewBox="0 0 26 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--or)">
+                <rect x="1" y="5" width="24" height="16" rx="2"/>
+                <circle cx="13" cy="13" r="4"/>
+                <path d="M8 5l2-4h6l2 4"/>
+              </svg>
+              <span class="fupload-zone-txt">Cliquez pour ajouter vos photos</span>
+              <span class="fupload-zone-hint">JPG, PNG, HEIC · max 10 Mo par photo</span>
+            </label>
+            <input class="fupload-input" type="file" id="fPhotos" name="photos" accept="image/*" multiple>
+            <div class="fupload-names" id="fuploadNames"></div>
+          </div>
+          <button type="submit" class="btn-send" id="btnSend"><span>Envoyer le message</span></button>
+          <div class="form-error" id="formError">Une erreur est survenue. Merci de réessayer ou d'écrire à latelierdeCarole49@gmail.com</div>
         </form>
         <div class="form-ok" id="formOk">
           <div class="form-ok-title">Merci !</div>
@@ -790,19 +831,34 @@ footer{background:var(--brun);padding:3rem 2rem;text-align:center;border-top:3px
   </div>
 </div>
 
+<!-- BOUTON CONTACT FLOTTANT -->
+<a id="contact-float" href="#contact">
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M1 1h10v7.5H7L6 11l-1-2.5H1V1z"/>
+  </svg>
+  Contacter Carole
+</a>
+
 <!-- BACK TO TOP -->
 <button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Retour en haut">↑</button>
 
 <script>
 const nav = document.getElementById('nav');
 const backTop = document.getElementById('back-top');
+const contactFloat = document.getElementById('contact-float');
 const heroParallax = document.getElementById('heroParallax');
+const contactSection = document.getElementById('contact');
 
-// Nav + back-to-top + parallax on scroll
+// Nav + back-to-top + bouton contact + parallax on scroll
 window.addEventListener('scroll', () => {
   const y = scrollY;
   nav.classList.toggle('scrolled', y > 80);
   backTop.classList.toggle('show', y > 400);
+  // Bouton contact : visible après le hero, masqué quand la section contact est atteinte
+  const contactTop = contactSection.getBoundingClientRect().top;
+  const pastHero = y > window.innerHeight * 0.6;
+  const atContact = contactTop < window.innerHeight * 0.6;
+  contactFloat.classList.toggle('show', pastHero && !atContact);
   // Parallax: move layer at 40% scroll speed
   if(heroParallax) heroParallax.style.transform = `translateY(${y * 0.4}px)`;
 }, {passive: true});
@@ -1051,11 +1107,79 @@ document.addEventListener('keydown', e => { if(e.key==='Escape'){ closeLightbox(
 // Init
 renderGallery();
 
-// Form
-function submitForm(e){
+// Validation photos (max 2)
+document.getElementById('fPhotos').addEventListener('change', function(){
+  const files = Array.from(this.files);
+  if(files.length > 2){
+    alert('Maximum 2 photos autorisées.');
+    this.value = '';
+    document.getElementById('fuploadNames').textContent = '';
+    return;
+  }
+  document.getElementById('fuploadNames').textContent = files.length
+    ? files.map(f => f.name).join('  ·  ')
+    : '';
+});
+
+// Upload d'une photo visiteur vers Cloudinary (dossier contact/)
+async function uploadContactPhoto(file){
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', UPLOAD_PRESET);
+  fd.append('folder', 'contact');
+  const res = await fetch(UPLOAD_URL, { method:'POST', body:fd });
+  if(!res.ok) throw new Error('Échec upload photo');
+  const data = await res.json();
+  return data.secure_url;
+}
+
+// Envoi du formulaire : photos → Cloudinary, texte → Formspree
+async function submitForm(e){
   e.preventDefault();
-  document.getElementById('contactForm').style.display = 'none';
-  document.getElementById('formOk').style.display = 'block';
+  const form    = document.getElementById('contactForm');
+  const btn     = document.getElementById('btnSend');
+  const errEl   = document.getElementById('formError');
+  const photos  = Array.from(document.getElementById('fPhotos').files);
+  btn.disabled  = true;
+  errEl.style.display = 'none';
+
+  try {
+    // 1. Upload des photos sur Cloudinary si présentes
+    const photoUrls = [];
+    if(photos.length){
+      btn.querySelector('span').textContent = 'Téléchargement des photos…';
+      for(const file of photos){
+        const url = await uploadContactPhoto(file);
+        photoUrls.push(url);
+      }
+    }
+
+    // 2. Construction du FormData sans le champ fichier
+    btn.querySelector('span').textContent = 'Envoi en cours…';
+    const fd = new FormData(form);
+    fd.delete('photos');
+    if(photoUrls[0]) fd.append('Photo 1', photoUrls[0]);
+    if(photoUrls[1]) fd.append('Photo 2', photoUrls[1]);
+
+    // 3. Envoi à Formspree (texte uniquement)
+    const res = await fetch('https://formspree.io/f/xojbanre', {
+      method: 'POST',
+      body: fd,
+      headers: { 'Accept': 'application/json' }
+    });
+    if(res.ok){
+      form.style.display = 'none';
+      document.getElementById('formOk').style.display = 'block';
+    } else {
+      const data = await res.json().catch(()=>({}));
+      throw new Error('HTTP ' + res.status + ' — ' + JSON.stringify(data));
+    }
+  } catch(err){
+    btn.disabled = false;
+    btn.querySelector('span').textContent = 'Envoyer le message';
+    errEl.style.display = 'block';
+    console.error('Form error:', err.message);
+  }
 }
 
 (function(){
@@ -1069,6 +1193,39 @@ function submitForm(e){
     timer = setInterval(()=>{ idx = idx >= imgs.length-1 ? 1 : idx+1; showPhoto(idx) }, 2000);
   });
   circle.addEventListener('mouseleave', ()=>{ clearInterval(timer); timer=null; idx=0; showPhoto(0) });
+})();
+
+// ── Sliders Avant/Après ──
+(function(){
+  function setPos(slider, pct){
+    pct = Math.max(1, Math.min(99, pct));
+    slider.querySelector('.cmp-before').style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
+    slider.querySelector('.cmp-line').style.left = pct + '%';
+  }
+
+  const sliders = document.querySelectorAll('.compare-slider');
+  sliders.forEach(s => setPos(s, 50));
+
+  let active = null;
+
+  function startDrag(slider){ active = slider; slider.classList.add('dragging') }
+  function stopDrag(){ if(active){ active.classList.remove('dragging'); active = null } }
+
+  function move(clientX){
+    if(!active) return;
+    const r = active.getBoundingClientRect();
+    setPos(active, (clientX - r.left) / r.width * 100);
+  }
+
+  sliders.forEach(s => {
+    s.addEventListener('mousedown', e => { startDrag(s); move(e.clientX); e.preventDefault() });
+    s.addEventListener('touchstart', e => { startDrag(s); move(e.touches[0].clientX) }, {passive:true});
+  });
+
+  window.addEventListener('mousemove',  e => move(e.clientX));
+  window.addEventListener('mouseup',    () => stopDrag());
+  window.addEventListener('touchmove',  e => { if(active) move(e.touches[0].clientX) }, {passive:true});
+  window.addEventListener('touchend',   () => stopDrag());
 })();
 </script>
 </body>
