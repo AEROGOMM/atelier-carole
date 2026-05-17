@@ -926,27 +926,21 @@ const ADMIN_PWD      = 'Carole49';
 const IMGUR_CLIENT   = '546c25a59c58ad7';
 const IMGUR_URL      = 'https://api.imgur.com/3/image';
 
-// ── GitHub Gist — manifeste des photos (lecture publique, écriture par token) ──
-const GIST_ID    = 'abb39f4d5d42e8815616af774abb1ade';
-const GIST_TOKEN = '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';
-const GIST_FILE  = 'photos.json';
+// ── Firebase Realtime Database — manifeste des photos ──
+const FIREBASE_URL = 'https://atelier-carole-default-rtdb.europe-west1.firebasedatabase.app';
 
 async function readBin(){
-  const res = await fetch('https://api.github.com/gists/' + GIST_ID, {
-    headers: {'Authorization': 'token ' + GIST_TOKEN}
-  });
+  const res = await fetch(FIREBASE_URL + '/photos.json');
   if(!res.ok) throw new Error('HTTP ' + res.status);
-  const gist = await res.json();
-  const raw  = gist.files?.[GIST_FILE]?.content;
-  if(!raw) return [];
-  try { return JSON.parse(raw).photos || []; } catch(e) { return []; }
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
 }
 
 async function writeBin(photos){
-  const res = await fetch('https://api.github.com/gists/' + GIST_ID, {
-    method: 'PATCH',
-    headers: {'Authorization': 'token ' + GIST_TOKEN, 'Content-Type': 'application/json'},
-    body: JSON.stringify({files: {[GIST_FILE]: {content: JSON.stringify({photos})}}})
+  const res = await fetch(FIREBASE_URL + '/photos.json', {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(photos)
   });
   if(!res.ok) throw new Error('HTTP ' + res.status);
 }
@@ -958,7 +952,7 @@ async function fetchPhotos(includeHidden){
       .filter(p => includeHidden || !p.hidden)
       .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
   } catch(e){
-    console.warn('JSONbin error:', e.message);
+    console.warn('Firebase error:', e.message);
     return null;
   }
 }
@@ -1106,24 +1100,17 @@ async function testCloudinaryConnection(){
     else             lines.push('<span style="color:#c0392b">✗ Imgur ('+res.status+') : '+(data.data?.error||JSON.stringify(data))+'</span>');
   } catch(e){ lines.push('<span style="color:#c0392b">✗ Imgur réseau : '+e.message+'</span>') }
 
-  // — Test GitHub Gist lecture —
+  // — Test Firebase —
   try {
-    const res  = await fetch('https://api.github.com/gists/' + GIST_ID, {
-      headers: {'Authorization': 'token ' + GIST_TOKEN}
-    });
+    const res  = await fetch(FIREBASE_URL + '/photos.json');
     const data = await res.json();
     if(res.ok){
-      const raw = data.files?.[GIST_FILE]?.content;
-      try {
-        const photos = raw ? (JSON.parse(raw).photos || []) : [];
-        lines.push('<span style="color:#2d7a2d">✓ GitHub Gist OK ('+photos.length+' photos)</span>');
-      } catch(e){
-        lines.push('<span style="color:#e67e22">⚠ GitHub Gist accessible — mais le contenu JSON est invalide.<br>Ouvrez votre gist sur gist.github.com, cliquez Edit, remplacez tout le contenu par exactement : <code>{"photos":[]}</code> puis Save.</span>');
-      }
+      const count = Array.isArray(data) ? data.length : 0;
+      lines.push('<span style="color:#2d7a2d">✓ Firebase OK ('+count+' photos)</span>');
     } else {
-      lines.push('<span style="color:#c0392b">✗ GitHub Gist : '+(data.message||res.status)+'</span>');
+      lines.push('<span style="color:#c0392b">✗ Firebase : '+(data.error||res.status)+'</span>');
     }
-  } catch(e){ lines.push('<span style="color:#c0392b">✗ GitHub Gist réseau : '+e.message+'</span>') }
+  } catch(e){ lines.push('<span style="color:#c0392b">✗ Firebase réseau : '+e.message+'</span>') }
 
   diag.innerHTML = lines.join('<br>');
   diag.style.display = 'block'; btn.disabled = false; btn.textContent = 'Tester la connexion';
