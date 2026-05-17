@@ -65,6 +65,14 @@ nav.scrolled .nav-links a{color:var(--brun)}
 .hero-city:hover .hero-city-frame img{transform:scale(1.06)}
 .hero-city-cap{font-family:'Raleway',sans-serif;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(232,160,32,.65);margin-top:.55rem;text-align:right}
 @media(max-width:768px){.hero-city{display:none}}
+.hero-piece{position:absolute;bottom:2.8rem;left:3.5rem;z-index:1;opacity:0;animation:fadeUp .9s 1.5s forwards}
+.hero-piece-frame{width:clamp(110px,12vw,175px);aspect-ratio:2/3;overflow:hidden;border:1px solid rgba(200,137,10,.5);box-shadow:0 0 0 5px rgba(200,137,10,.07),0 18px 55px rgba(0,0,0,.55);position:relative;transition:transform .4s,box-shadow .4s}
+.hero-piece:hover .hero-piece-frame{transform:translateY(-4px);box-shadow:0 0 0 5px rgba(200,137,10,.12),0 28px 70px rgba(0,0,0,.6)}
+.hero-piece-frame::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(30,10,2,.5) 0%,transparent 55%);pointer-events:none}
+.hero-piece-frame img{width:100%;height:100%;object-fit:cover;display:block;filter:sepia(.28) contrast(1.06) brightness(.97);transition:transform .6s}
+.hero-piece:hover .hero-piece-frame img{transform:scale(1.06)}
+.hero-piece-cap{font-family:'Raleway',sans-serif;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(232,160,32,.65);margin-top:.55rem;text-align:left}
+@media(max-width:768px){.hero-piece{display:none}}
 .scroll-line{width:1px;height:55px;background:linear-gradient(to bottom,var(--or),transparent);animation:pulse 2s ease-in-out infinite}
 .scroll-txt{font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(253,246,236,.55)}
 
@@ -406,6 +414,13 @@ footer{background:var(--brun);padding:3rem 2rem;text-align:center;border-top:3px
     </div>
     <p class="hero-city-cap">Angers · Maine-et-Loire</p>
     <p class="hero-city-cap">Atelier à Feneu</p>
+  </div>
+
+  <div class="hero-piece">
+    <div class="hero-piece-frame">
+      <img src="armoire-1.jpg" alt="Armoire ancienne restaurée par L'Atelier de Carole — aérogommage">
+    </div>
+    <p class="hero-piece-cap">Armoire · Aérogommage</p>
   </div>
 
   <div class="scroll-hint">
@@ -807,7 +822,7 @@ footer{background:var(--brun);padding:3rem 2rem;text-align:center;border-top:3px
         style="padding:.55rem 1.4rem;background:none;border:1px solid rgba(200,137,10,.4);color:var(--or);font-family:'Raleway',sans-serif;font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .3s"
         onmouseover="this.style.background='var(--or)';this.style.color='#fff'"
         onmouseout="this.style.background='none';this.style.color='var(--or)'">
-        Tester la connexion Cloudinary
+        Tester la connexion
       </button>
       <span id="diagMsg" style="display:none;font-size:.85rem;font-weight:500"></span>
     </div>
@@ -907,33 +922,61 @@ document.querySelectorAll('.g-item').forEach(item => {
 });
 
 // ── GALLERY SYSTEM ──
-const CLOUD_NAME     = 'db1tbhrcu';
-const UPLOAD_PRESET  = 'ixfmhfh8';
 const ADMIN_PWD      = 'Carole49';
-const UPLOAD_URL     = 'https://api.cloudinary.com/v1_1/' + CLOUD_NAME + '/image/upload';
-const STORAGE_KEY    = 'carole_gallery_v1';
+const IMGUR_CLIENT   = '546c25a59c58ad7';
+const IMGUR_URL      = 'https://api.imgur.com/3/image';
 
-// ── localStorage ──
-function getPhotos(){ return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]') }
-function savePhotos(list){ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)) }
-function addPhoto(p){ savePhotos([p, ...getPhotos()]) }
-function removePhoto(id){ savePhotos(getPhotos().filter(p => p.id !== id)) }
-function updateTitle(id, title){ savePhotos(getPhotos().map(p => p.id===id ? {...p, title} : p)) }
+// ── GitHub Gist — manifeste des photos (lecture publique, écriture par token) ──
+const GIST_ID    = 'abb39f4d5d42e8815616af774abb1ade';
+const GIST_TOKEN = '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';
+const GIST_FILE  = 'photos.json';
+
+async function readBin(){
+  const res = await fetch('https://api.github.com/gists/' + GIST_ID, {
+    headers: {'Authorization': 'token ' + GIST_TOKEN}
+  });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const gist = await res.json();
+  const raw  = gist.files?.[GIST_FILE]?.content;
+  if(!raw) return [];
+  try { return JSON.parse(raw).photos || []; } catch(e) { return []; }
+}
+
+async function writeBin(photos){
+  const res = await fetch('https://api.github.com/gists/' + GIST_ID, {
+    method: 'PATCH',
+    headers: {'Authorization': 'token ' + GIST_TOKEN, 'Content-Type': 'application/json'},
+    body: JSON.stringify({files: {[GIST_FILE]: {content: JSON.stringify({photos})}}})
+  });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+}
+
+async function fetchPhotos(includeHidden){
+  try {
+    const photos = await readBin();
+    return photos
+      .filter(p => includeHidden || !p.hidden)
+      .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+  } catch(e){
+    console.warn('JSONbin error:', e.message);
+    return null;
+  }
+}
 
 // ── Galerie publique ──
-function renderGallery(){
+async function renderGallery(){
   const grid  = document.getElementById('real-grid');
   const empty = document.getElementById('real-empty');
   grid.querySelectorAll('.real-item').forEach(el => el.remove());
-  const photos = getPhotos();
-  if(!photos.length){ empty.style.display='flex'; return }
+  const photos = await fetchPhotos(false);
+  if(!photos || !photos.length){ empty.style.display = 'flex'; return }
   empty.style.display = 'none';
   photos.forEach(photo => {
     const item = document.createElement('div');
     item.className = 'real-item';
-    item.innerHTML = `<img src="${photo.secureUrl}" alt="${photo.title||'Réalisation'}" loading="lazy">
+    item.innerHTML = `<img src="${photo.secureUrl}" alt="${photo.title || 'Réalisation'}" loading="lazy">
       <div class="real-overlay">
-        <span class="real-title">${photo.title||''}</span>
+        <span class="real-title">${photo.title || ''}</span>
         <span class="real-zoom">Voir en grand</span>
       </div>`;
     item.addEventListener('click', () => openLightbox(photo));
@@ -944,7 +987,7 @@ function renderGallery(){
 // ── Lightbox ──
 function openLightbox(photo){
   document.getElementById('lb-img').src = photo.secureUrl;
-  document.getElementById('lb-title').textContent = photo.title||'';
+  document.getElementById('lb-title').textContent = photo.title || '';
   document.getElementById('lightbox').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -953,13 +996,13 @@ function closeLightbox(){
   document.body.style.overflow = '';
 }
 document.getElementById('lightbox').addEventListener('click', function(e){
-  if(e.target===this || e.target===document.getElementById('lb-img')) closeLightbox();
+  if(e.target === this || e.target === document.getElementById('lb-img')) closeLightbox();
 });
 
 // ── Admin — connexion ──
 function openAdminLogin(){
   document.getElementById('adminLoginModal').classList.add('open');
-  setTimeout(()=>document.getElementById('adminPwdInput').focus(), 200);
+  setTimeout(() => document.getElementById('adminPwdInput').focus(), 200);
 }
 function closeAdminLogin(){
   document.getElementById('adminLoginModal').classList.remove('open');
@@ -976,8 +1019,8 @@ function checkPassword(){
     document.getElementById('adminPwdInput').focus();
   }
 }
-document.getElementById('adminLoginModal').addEventListener('click', function(e){ if(e.target===this) closeAdminLogin() });
-document.getElementById('adminPwdInput').addEventListener('keydown', e=>{ if(e.key==='Enter') checkPassword() });
+document.getElementById('adminLoginModal').addEventListener('click', function(e){ if(e.target === this) closeAdminLogin() });
+document.getElementById('adminPwdInput').addEventListener('keydown', e => { if(e.key === 'Enter') checkPassword() });
 
 // ── Admin — panneau ──
 function openAdminPanel(){
@@ -991,49 +1034,99 @@ function closeAdminPanel(){
   renderGallery();
 }
 
-function renderAdminGrid(){
-  const photos = getPhotos();
-  const grid   = document.getElementById('adminGrid');
-  document.getElementById('photoCount').textContent = photos.length;
+async function renderAdminGrid(){
+  const grid = document.getElementById('adminGrid');
+  document.getElementById('photoCount').textContent = '…';
+  grid.innerHTML = '<p class="admin-empty-msg" style="font-style:normal;font-size:.9rem;padding:2rem">Chargement…</p>';
+  const photos = await fetchPhotos(true);
+  if(photos === null){
+    document.getElementById('photoCount').textContent = '!';
+    grid.innerHTML = '<p class="admin-empty-msg">Erreur de chargement. Vérifiez la connexion (bouton "Tester").</p>';
+    return;
+  }
+  document.getElementById('photoCount').textContent = photos.filter(p => !p.hidden).length;
   if(!photos.length){
     grid.innerHTML = '<p class="admin-empty-msg">Aucune photo pour le moment.<br>Importez vos premières photos ci-dessus !</p>';
     return;
   }
   grid.innerHTML = photos.map(p => `
-    <div class="admin-photo-card" data-id="${p.id}">
+    <div class="admin-photo-card" data-id="${p.id}" style="${p.hidden ? 'opacity:.4' : ''}">
       <div class="admin-photo-img">
         <img src="${p.secureUrl}" alt="">
-        <button class="admin-delete-btn" onclick="deletePhotoUI(this)" title="Supprimer">✕</button>
+        <button class="admin-delete-btn" onclick="toggleHidePhoto(this)"
+          title="${p.hidden ? 'Remettre en ligne' : 'Masquer de la galerie'}"
+          style="${p.hidden ? 'background:rgba(200,137,10,.85)' : ''}">
+          ${p.hidden ? '👁' : '✕'}
+        </button>
       </div>
-      <input class="admin-title-input" type="text" value="${p.title||''}" placeholder="Titre de la photo…"
-        onchange="updateTitle('${p.id}',this.value); renderGallery()">
+      <input class="admin-title-input" type="text" value="${p.title}" placeholder="Titre de la photo…"
+        onchange="updatePhotoTitle('${p.id}', this.value)">
     </div>`).join('');
 }
 
-function deletePhotoUI(btn){
+async function toggleHidePhoto(btn){
+  btn.disabled = true;
   const card = btn.closest('.admin-photo-card');
   const id   = card.dataset.id;
-  if(!confirm('Supprimer cette photo de la galerie ?')) return;
-  removePhoto(id);
-  card.remove();
-  document.getElementById('photoCount').textContent = getPhotos().length;
-  renderGallery();
+  try {
+    const photos = await readBin();
+    const photo  = photos.find(p => p.id === id);
+    if(!photo?.hidden && !confirm('Masquer cette photo de la galerie publique ?')){ btn.disabled = false; return }
+    await writeBin(photos.map(p => p.id === id ? {...p, hidden: !p.hidden} : p));
+    renderAdminGrid(); renderGallery();
+  } catch(e){ alert('Erreur : ' + e.message); btn.disabled = false }
+}
+
+async function updatePhotoTitle(id, title){
+  try {
+    const photos = await readBin();
+    await writeBin(photos.map(p => p.id === id ? {...p, title} : p));
+    renderGallery();
+  } catch(e){ console.warn('Title update error:', e.message) }
 }
 
 async function testCloudinaryConnection(){
   const btn  = document.getElementById('testBtn');
   const diag = document.getElementById('diagMsg');
-  btn.disabled = true; btn.textContent = 'Test en cours…'; diag.style.display = 'none';
-  const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
-  const fd = new FormData();
-  fd.append('file', pixel); fd.append('upload_preset', UPLOAD_PRESET);
+  btn.disabled = true; btn.textContent = 'Test en cours…';
+  diag.style.display = 'none'; diag.innerHTML = '';
+
+  const lines = [];
+
+  // — Test Imgur upload —
   try {
-    const res = await fetch(UPLOAD_URL, {method:'POST', body:fd});
+    const canvas = document.createElement('canvas');
+    canvas.width = 1; canvas.height = 1;
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+    const fd   = new FormData();
+    fd.append('image', blob, 'test.png');
+    const res  = await fetch(IMGUR_URL, {method:'POST', headers:{'Authorization':'Client-ID '+IMGUR_CLIENT}, body:fd});
     const data = await res.json();
-    if(res.ok){ diag.style.color='#2d7a2d'; diag.textContent='✓ Connexion Cloudinary OK' }
-    else { diag.style.color='#c0392b'; diag.textContent='✗ Erreur : '+(data.error?.message||JSON.stringify(data)) }
-  } catch(e){ diag.style.color='#c0392b'; diag.textContent='✗ Erreur réseau : '+e.message }
-  diag.style.display='block'; btn.disabled=false; btn.textContent='Tester la connexion';
+    if(data.success) lines.push('<span style="color:#2d7a2d">✓ Imgur OK</span>');
+    else             lines.push('<span style="color:#c0392b">✗ Imgur ('+res.status+') : '+(data.data?.error||JSON.stringify(data))+'</span>');
+  } catch(e){ lines.push('<span style="color:#c0392b">✗ Imgur réseau : '+e.message+'</span>') }
+
+  // — Test GitHub Gist lecture —
+  try {
+    const res  = await fetch('https://api.github.com/gists/' + GIST_ID, {
+      headers: {'Authorization': 'token ' + GIST_TOKEN}
+    });
+    const data = await res.json();
+    if(res.ok){
+      const raw = data.files?.[GIST_FILE]?.content;
+      try {
+        const photos = raw ? (JSON.parse(raw).photos || []) : [];
+        lines.push('<span style="color:#2d7a2d">✓ GitHub Gist OK ('+photos.length+' photos)</span>');
+      } catch(e){
+        lines.push('<span style="color:#e67e22">⚠ GitHub Gist accessible — mais le contenu JSON est invalide.<br>Ouvrez votre gist sur gist.github.com, cliquez Edit, remplacez tout le contenu par exactement : <code>{"photos":[]}</code> puis Save.</span>');
+      }
+    } else {
+      lines.push('<span style="color:#c0392b">✗ GitHub Gist : '+(data.message||res.status)+'</span>');
+    }
+  } catch(e){ lines.push('<span style="color:#c0392b">✗ GitHub Gist réseau : '+e.message+'</span>') }
+
+  diag.innerHTML = lines.join('<br>');
+  diag.style.display = 'block'; btn.disabled = false; btn.textContent = 'Tester la connexion';
 }
 
 // ── Upload ──
@@ -1041,17 +1134,16 @@ async function uploadFile(file, onProgress){
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const fd  = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', UPLOAD_PRESET);
-    xhr.open('POST', UPLOAD_URL);
+    fd.append('image', file);
+    xhr.open('POST', IMGUR_URL);
+    xhr.setRequestHeader('Authorization', 'Client-ID ' + IMGUR_CLIENT);
     xhr.upload.onprogress = e => { if(e.lengthComputable) onProgress(Math.round(e.loaded/e.total*100)) };
     xhr.onload = () => {
-      if(xhr.status===200){ resolve(JSON.parse(xhr.responseText)) }
-      else {
-        let msg = 'Échec (' + xhr.status + ')';
-        try { const r=JSON.parse(xhr.responseText); msg=r.error?.message||msg } catch(e){}
-        reject(new Error(msg));
-      }
+      try {
+        const data = JSON.parse(xhr.responseText);
+        if(data.success) resolve({public_id: data.data.id, secure_url: data.data.link});
+        else reject(new Error(data.data?.error || 'Erreur ' + xhr.status));
+      } catch(e){ reject(new Error('Réponse invalide')) }
     };
     xhr.onerror = () => reject(new Error('Erreur réseau'));
     xhr.send(fd);
@@ -1070,17 +1162,18 @@ async function processUpload(file){
   queue.prepend(item);
   try {
     const res = await uploadFile(file, pct => { item.querySelector('.upload-bar').style.width = pct+'%' });
-    const photo = {
-      id: 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2,5),
-      publicId: res.public_id,
+    item.querySelector('.upload-bar').style.background = '#C8890A';
+    item.querySelector('.upload-status').textContent = '⌛ Enregistrement…';
+    const current = await readBin();
+    await writeBin([{
+      id: res.public_id,
       secureUrl: res.secure_url,
       title: '',
+      hidden: false,
       uploadedAt: new Date().toISOString()
-    };
-    addPhoto(photo);
+    }, ...current]);
     item.querySelector('.upload-status').textContent = '✓ Importée';
     item.querySelector('.upload-status').style.color  = '#C8890A';
-    item.querySelector('.upload-bar').style.background = '#C8890A';
     renderAdminGrid();
     renderGallery();
     setTimeout(() => item.remove(), 3000);
@@ -1121,19 +1214,18 @@ document.getElementById('fPhotos').addEventListener('change', function(){
     : '';
 });
 
-// Upload d'une photo visiteur vers Cloudinary (dossier contact/)
+// Upload d'une photo visiteur vers Imgur (formulaire contact)
 async function uploadContactPhoto(file){
   const fd = new FormData();
-  fd.append('file', file);
-  fd.append('upload_preset', UPLOAD_PRESET);
-  fd.append('folder', 'contact');
-  const res = await fetch(UPLOAD_URL, { method:'POST', body:fd });
+  fd.append('image', file);
+  const res = await fetch(IMGUR_URL, {method:'POST', headers:{'Authorization':'Client-ID '+IMGUR_CLIENT}, body:fd});
   if(!res.ok) throw new Error('Échec upload photo');
   const data = await res.json();
-  return data.secure_url;
+  if(!data.success) throw new Error(data.data?.error || 'Échec upload photo');
+  return data.data.link;
 }
 
-// Envoi du formulaire : photos → Cloudinary, texte → Formspree
+// Envoi du formulaire : photos → Imgur, texte → Formspree
 async function submitForm(e){
   e.preventDefault();
   const form    = document.getElementById('contactForm');
@@ -1144,7 +1236,7 @@ async function submitForm(e){
   errEl.style.display = 'none';
 
   try {
-    // 1. Upload des photos sur Cloudinary si présentes
+    // 1. Upload des photos sur Imgur si présentes
     const photoUrls = [];
     if(photos.length){
       btn.querySelector('span').textContent = 'Téléchargement des photos…';
