@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://latelierdecarole49.com/sitemap.xml
